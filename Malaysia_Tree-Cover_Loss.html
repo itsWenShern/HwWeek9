@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Malaysia Tree-Cover Loss (2024)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+</head>
+<body>
+  <div id="vis"></div>
+  <script>
+  const spec = { 
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Malaysia Tree-Cover Loss (% of 2000 Extent) (2024)",
+  "width": 1000,
+  "height": 450,
+  "projection": {"type": "mercator", "center": [110, 4], "scale": 2850},
+  "layer": [
+    {
+      "data": {"graticule": {"step": [1, 1]}},
+      "mark": {"type": "geoshape", "fill": null, "stroke": "lightgray"}
+    },
+    {
+      "data": {
+        "url": "https://raw.githubusercontent.com/itsWenShern/HwWeek9/refs/heads/main/Malaysia_States.json",
+        "format": { "type": "json", "property": "features" }
+      },
+      "transform": [
+        {
+          "lookup": "properties.name",
+          "from": {
+            "data": {
+              "url": "https://raw.githubusercontent.com/itsWenShern/HwWeek9/refs/heads/main/msia_deforestation_threshold30.csv",
+              "format": { "type": "csv" }
+            },
+            "key": "state",
+            "fields": ["loss_pct_2000","loss_ha","extent_2000_ha"]
+          }
+        },
+        { "calculate": "isValid(datum.loss_pct_2000)", "as": "hasData" }
+      ],
+      "mark": { "type": "geoshape", "stroke": "white" },
+      "encoding": {
+        "color": {
+          "condition": {
+            "test": "datum.hasData",
+            "field": "loss_pct_2000",
+            "type": "quantitative",
+            "scale": { "scheme": "orangered" },
+            "legend": { "title": "% of 2000 extent" }
+          },
+          "value": "#808080"
+        },
+        "tooltip": [
+          { "field": "properties.name", "title": "State" },
+          { "field": "loss_pct_2000", "title": "% loss (latest)", "format": ".2f" },
+          { "field": "loss_ha", "title": "Loss (ha)", "format": "," },
+          { "field": "extent_2000_ha", "title": "Extent 2000 (ha)", "format": "," }
+        ]
+      }
+    },
+
+    /* --- Melaka callout: dot --- */
+    {
+      "data": { "values": [ { "lon": 102.25, "lat": 2.20 } ] },
+      "mark": { "type": "point", "filled": true, "size": 60 },
+      "encoding": {
+        "longitude": { "field": "lon", "type": "quantitative" },
+        "latitude": { "field": "lat", "type": "quantitative" },
+        "color": { "value": "#000" }
+      }
+    },
+
+    {
+      "data": {
+        "values": [
+          {
+            "lon": 102.25,
+            "lat": 2.20,
+            "text": "Melaka: highest loss rate in 2024"
+          }
+        ]
+      },
+      "mark": {
+        "type": "text",
+        "fontSize": 11,
+        "fontWeight": "500",
+        "align": "left",
+        "baseline": "middle",
+        "dx": 9,
+        "dy": 0,
+        "fill": "#000"
+      },
+      "encoding": {
+        "longitude": { "field": "lon", "type": "quantitative" },
+        "latitude": { "field": "lat", "type": "quantitative" },
+        "text": { "field": "text" }
+      }
+    }
+  ]
+  };
+  vegaEmbed("#vis", spec, {mode:"vega-lite", actions:false});
+  </script>
+</body>
+</html>
